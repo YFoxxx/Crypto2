@@ -1,4 +1,6 @@
 #include "my_func.h"
+#define P1 "13508144197848661939"
+#define P2 "10255132451835681187"
 using namespace std;
 using namespace boost::multiprecision;
 
@@ -89,29 +91,13 @@ void ASCIIfromA(boost::multiprecision::cpp_int a, std::string fileOut, std::vect
 
 void generateFirstKey(std::string fileKey)
 {
-    boost::multiprecision::cpp_int p1{"13508144197848661939"};
-    boost::multiprecision::cpp_int p2{ "10255132451835681187"};
+    boost::multiprecision::cpp_int p1{ P1 };
+    boost::multiprecision::cpp_int p2{ P2 };
     boost::multiprecision::cpp_int N, N1;
-    int k1 = 53;
+    boost::multiprecision::cpp_int k1 = generateK1();
     N = p1 * p2;
-    //N1 = (p1 - 1) * (p2 - 1);
     boost::filesystem::path p(fileKey.c_str());
     boost::filesystem::ofstream file(p) ;
-    file << N << " " << k1;
-    file.close();
-}
-
-void generateSecondKey(std::string fileKey)
-{
-    boost::multiprecision::cpp_int p1{ "13508144197848661939" };
-    boost::multiprecision::cpp_int p2{ "10255132451835681187" };
-    boost::multiprecision::cpp_int N, N1;
-    int k2;
-    int k1 = 53;
-    N = p1 * p2;
-    //N1 = (p1 - 1) * (p2 - 1);
-    boost::filesystem::path p(fileKey.c_str());
-    boost::filesystem::ofstream file(p);
     file << N << " " << k1;
     file.close();
 }
@@ -144,8 +130,8 @@ boost::multiprecision::cpp_int modexp(boost::multiprecision::cpp_int x, boost::m
 
 void decrypt(boost::multiprecision::cpp_int c, std::string fileKey, std::string fileOut)
 {
-    boost::multiprecision::cpp_int p1{ "13508144197848661939" };
-    boost::multiprecision::cpp_int p2{ "10255132451835681187" };
+    boost::multiprecision::cpp_int p1{ P1 };
+    boost::multiprecision::cpp_int p2{ P2 };
     boost::multiprecision::cpp_int a, k2, N1, N, k1;
     boost::filesystem::path p(fileKey.c_str());
     boost::filesystem::ifstream file(p);
@@ -172,8 +158,8 @@ boost::multiprecision::cpp_int getC(std::string fileC)
 
 boost::multiprecision::cpp_int reverse(boost::multiprecision::cpp_int a, boost::multiprecision::cpp_int b)
 {
-    boost::multiprecision::cpp_int p1{ "13508144197848661939" };
-    boost::multiprecision::cpp_int p2{ "10255132451835681187" };
+    boost::multiprecision::cpp_int p1{ P1 };
+    boost::multiprecision::cpp_int p2{ P2 };
     boost::multiprecision::cpp_int a1, b1, A, c, t3, v, N1;
     N1 = (p1 - 1) * (p2 - 1);
     if (a > b)
@@ -221,7 +207,10 @@ boost::multiprecision::cpp_int gcd(boost::multiprecision::cpp_int n1, boost::mul
 std::vector<boost::multiprecision::cpp_int> EilerVector(boost::multiprecision::cpp_int a)
 {
     vector<boost::multiprecision::cpp_int> eVec;
-    boost::multiprecision::cpp_int n = 7654;
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> randomK(347, 457412);
+    boost::multiprecision::cpp_int n = randomK(rng);
     int i = 0;
     while (true)
     {
@@ -230,9 +219,49 @@ std::vector<boost::multiprecision::cpp_int> EilerVector(boost::multiprecision::c
             eVec.push_back(n);
             i++;
         }
-        n++;
+        n=n+1;
         if (eVec.size() > 10)
             break;
     }
     return eVec;
+}
+
+bool checkK1()
+{
+    boost::multiprecision::cpp_int N, k1;
+    boost::filesystem::path p("key1.txt");
+    boost::filesystem::ifstream file(p);
+    file >> N;
+    file >> k1;
+    if (k1 == 0)
+        return false;
+    else
+        return true;
+}
+
+boost::multiprecision::cpp_int generateK1()
+{
+    boost::multiprecision::cpp_int p1{ P1 };
+    boost::multiprecision::cpp_int p2{ P2 };
+    vector<boost::multiprecision::cpp_int> eVec;
+    boost::multiprecision::cpp_int N1;
+    boost::multiprecision::cpp_int k1;
+    N1 = (p1 - 1) * (p2 - 1);
+    eVec=EilerVector(N1);
+    for (auto i : eVec)
+        cout << i << "\t";
+    cout << "\n" << "Выберите число k1=";
+    cin >> k1;
+    cout << "\n";
+    return k1;
+}
+
+boost::multiprecision::cpp_int getK1()
+{
+    boost::multiprecision::cpp_int N, k1;
+    boost::filesystem::path p("key1.txt");
+    boost::filesystem::ifstream file(p);
+    file >> N;
+    file >> k1;
+    return k1;  
 }
